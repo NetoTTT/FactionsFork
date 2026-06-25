@@ -140,6 +140,110 @@ extends Coll<Faction> {
         return false;
     }
 
+    private final java.util.Map<String, Integer> rankCache = new java.util.HashMap<String, Integer>();
+    private long rankCacheTime = 0;
+    private static final long RANK_CACHE_TTL = 30_000L; // 30 seconds
+
+    private void refreshRankCacheIfNeeded() {
+        long now = System.currentTimeMillis();
+        if (now - rankCacheTime < RANK_CACHE_TTL) return;
+        rankCacheTime = now;
+        rankCache.clear();
+
+        List<Faction> all = new ArrayList<Faction>();
+        for (Faction f : this.getAll()) {
+            if (f.isNormal()) all.add(f);
+        }
+
+        final java.util.Map<String, Double> balances = new java.util.HashMap<String, Double>();
+        for (Faction f : all) {
+            balances.put(f.getId(), getFactionBalance(f));
+        }
+
+        List<Faction> byPower = new ArrayList<Faction>(all);
+        Collections.sort(byPower, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) { return Double.compare(b.getPower(), a.getPower()); }
+        });
+
+        List<Faction> byCoins = new ArrayList<Faction>(all);
+        Collections.sort(byCoins, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) {
+                double ba = balances.containsKey(a.getId()) ? balances.get(a.getId()) : 0;
+                double bb = balances.containsKey(b.getId()) ? balances.get(b.getId()) : 0;
+                return Double.compare(bb, ba);
+            }
+        });
+
+        for (Faction f : all) {
+            int rp = rankIn(f, byPower);
+            int rc = rankIn(f, byCoins);
+            rankCache.put(f.getId(), Math.min(rp, rc));
+        }
+    }
+
+    private List<Faction> getNormalFactions() {
+        List<Faction> list = new ArrayList<Faction>();
+        for (Faction f : this.getAll()) {
+            if (f.isNormal()) list.add(f);
+        }
+        return list;
+    }
+
+    private int rankIn(Faction target, List<Faction> sorted) {
+        for (int i = 0; i < sorted.size(); i++) {
+            if (sorted.get(i).getId().equals(target.getId())) return i + 1;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    private double getFactionBalance(Faction faction) {
+        net.milkbowl.vault.economy.Economy eco = getEconomy();
+        if (eco == null) return 0;
+        double total = 0;
+        for (com.massivecraft.factions.entity.MPlayer mp : faction.getMPlayers()) {
+            try {
+                org.bukkit.OfflinePlayer op = org.bukkit.Bukkit.getOfflinePlayer(mp.getName());
+                total += eco.getBalance(op);
+            } catch (Exception ignored) {}
+        }
+        return total;
+    }
+
+    private net.milkbowl.vault.economy.Economy getEconomy() {
+        try {
+            org.bukkit.plugin.RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> rsp =
+                org.bukkit.Bukkit.getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+            return rsp == null ? null : rsp.getProvider();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public int getBestRank(Faction target) {
+        if (target == null || !target.isNormal()) return Integer.MAX_VALUE;
+        refreshRankCacheIfNeeded();
+        Integer cached = rankCache.get(target.getId());
+        return cached != null ? cached : Integer.MAX_VALUE;
+    }
+
+    public String getRankColor(Faction faction) {
+        int rank = this.getBestRank(faction);
+        if (rank == 1) return MConf.get().colorTagTop1;
+        if (rank == 2) return MConf.get().colorTagTop2;
+        if (rank == 3) return MConf.get().colorTagTop3;
+        return "§7";
+    }
+
+    public List<Faction> getTopFactions(int limit) {
+        List<Faction> sorted = getNormalFactions();
+        Collections.sort(sorted, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) {
+                return Double.compare(b.getPower(), a.getPower());
+            }
+        });
+        return sorted.subList(0, Math.min(limit, sorted.size()));
+    }
+
     public Faction getByTag(String tag) {
         if (tag == null || tag.isEmpty()) return null;
         String upper = tag.toUpperCase();

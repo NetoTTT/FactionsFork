@@ -8,6 +8,7 @@ package com.massivecraft.factions.chat;
 
 import com.massivecraft.factions.chat.ChatTag;
 import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MPlayer;
 import org.bukkit.command.CommandSender;
 
@@ -31,7 +32,8 @@ extends ChatTag {
             return "";
         }
         String display = faction.hasTag() ? faction.getTag() : faction.getName();
-        return "\u00a77[" + usender.getRole().getPrefix() + display + "\u00a77] \u00a7f";
+        String color = FactionColl.get().getRankColor(faction);
+        return color + "[" + usender.getRole().getPrefix() + display + color + "] \u00a7f";
     }
 }
 

@@ -30,12 +30,14 @@ import com.massivecraft.factions.engine.EngineKdr;
 import com.massivecraft.factions.engine.EngineSobAtaque;
 import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.factions.entity.FactionColl;
 import com.massivecraft.factions.entity.MConf;
 import com.massivecraft.factions.entity.MPlayer;
 import com.massivecraft.factions.util.Heads;
 import com.massivecraft.factions.util.ItemBuilder;
 import com.massivecraft.massivecore.Engine;
 import com.massivecraft.massivecore.ps.PS;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -136,6 +138,13 @@ extends Engine {
                     e.setCancelled(true);
                     return;
                 }
+                return;
+            }
+        } else if (cmd.equalsIgnoreCase("/f top") || cmd.equalsIgnoreCase("/f rank") || cmd.equalsIgnoreCase("/f ranking")) {
+            Player p = e.getPlayer();
+            if (p instanceof Player) {
+                e.setCancelled(true);
+                this.abrirMenuRanking(p);
                 return;
             }
         } else if (cmd.equalsIgnoreCase("/f relacao") || cmd.equalsIgnoreCase("/f rela\u00e7\u00e3o") || cmd.equalsIgnoreCase("/f relation") || cmd.equalsIgnoreCase("/f rel")) {
@@ -417,6 +426,41 @@ extends Engine {
             inv.setItem(slot, new ItemBuilder(Material.PAPER).setName("\u00a7eConvite da fac\u00e7\u00e3o " + factionNome).setLore("\u00a7fBot\u00e3o Esquerdo: \u00a77Aceitar convite", "\u00a7fBot\u00e3o Direito: \u00a77Deletar convite", "\u00a7fShift + Bot\u00e3o direito: \u00a77Informa\u00e7\u00f5es da fac\u00e7\u00e3o").toItemStack());
             slot += slot == 15 || slot == 24 ? 5 : 1;
             ++i;
+        }
+        p.openInventory(inv);
+    }
+
+    public void abrirMenuRanking(Player p) {
+        List<Faction> top = FactionColl.get().getTopFactions(45);
+        int size = Math.max(9, ((top.size() / 9) + (top.size() % 9 == 0 ? 0 : 1)) * 9);
+        size = Math.min(size, 54);
+        Inventory inv = Bukkit.createInventory(null, size, "§8Ranking das Facções");
+        String[] medals = {"§6#1", "§7#2", "§c#3"};
+        for (int i = 0; i < top.size() && i < size; i++) {
+            Faction f = top.get(i);
+            String color = FactionColl.get().getRankColor(f);
+            String display = f.hasTag() ? f.getTag() : f.getName();
+            String rank = i < 3 ? medals[i] : ("§f#" + (i + 1));
+            String leader = f.getLeader() == null ? "N/A" : f.getLeader().getName();
+            double power = f.getPower();
+            double powerMax = f.getPowerMax();
+            int members = f.getMPlayers().size();
+            int lands = f.getLandCount();
+            ItemStack banner = new ItemStack(Material.BANNER, 1, (short)15);
+            org.bukkit.inventory.meta.BannerMeta meta = (org.bukkit.inventory.meta.BannerMeta) banner.getItemMeta();
+            if (i == 0) meta.setBaseColor(DyeColor.YELLOW);
+            else if (i == 1) meta.setBaseColor(DyeColor.SILVER);
+            else if (i == 2) meta.setBaseColor(DyeColor.ORANGE);
+            else meta.setBaseColor(DyeColor.WHITE);
+            meta.setDisplayName(rank + " " + color + "[" + display + "] §f" + f.getName());
+            List<String> lore = new ArrayList<String>();
+            lore.add("§7Líder: §f" + leader);
+            lore.add("§7Poder: §f" + String.format("%.1f", power) + "§7/§f" + String.format("%.1f", powerMax));
+            lore.add("§7Membros: §f" + members);
+            lore.add("§7Terras: §f" + lands);
+            meta.setLore(lore);
+            banner.setItemMeta(meta);
+            inv.setItem(i, banner);
         }
         p.openInventory(inv);
     }

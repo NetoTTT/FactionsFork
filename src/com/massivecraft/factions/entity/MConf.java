@@ -94,6 +94,9 @@ extends Entity<MConf> {
     public String territoryInfoChat = "<i> ~ {relcolor}{name} <i>{desc}";
     public boolean permanentFactionsDisableLeaderPromotion = false;
     public boolean handlePistonProtectionThroughDenyBuild = true;
+    public String colorTagTop1 = "§6";
+    public String colorTagTop2 = "§7";
+    public String colorTagTop3 = "§c";
     public Map<Rel, List<String>> denyCommandsTerritoryRelation = MUtil.map(Rel.ENEMY, MUtil.list("home", "homes", "sethome", "createhome", "tpahere", "tpaccept", "tpyes", "tpa", "call", "tpask", "warp", "warps", "spawn", "ehome", "ehomes", "esethome", "ecreatehome", "etpahere", "etpaccept", "etpyes", "etpa", "ecall", "etpask", "ewarp", "ewarps", "espawn", "essentials:home", "essentials:homes", "essentials:sethome", "essentials:createhome", "essentials:tpahere", "essentials:tpaccept", "essentials:tpyes", "essentials:tpa", "essentials:call", "essentials:tpask", "essentials:warp", "essentials:warps", "essentials:spawn", "jtp"), Rel.NEUTRAL, new ArrayList<String>(), Rel.TRUCE, new ArrayList<String>(), Rel.ALLY, new ArrayList<String>(), Rel.MEMBER, new ArrayList<String>());
     public EventPriority chatSetFormatAt = EventPriority.LOWEST;
     public String chatSetFormatTo = "<{faction}\u00a7f%1$s> %2$s";
