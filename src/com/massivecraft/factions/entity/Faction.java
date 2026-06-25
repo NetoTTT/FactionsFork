@@ -77,6 +77,7 @@ implements FactionsParticipator {
     public int version = 1;
     private String name = null;
     private String tag = null;
+    private java.util.Map<String, String> shopSpawners = new java.util.HashMap<String, String>();
     private String description = null;
     private String motd = null;
     private long createdAtMillis = System.currentTimeMillis();
@@ -91,8 +92,38 @@ implements FactionsParticipator {
         return (Faction)FactionColl.get().get(oid);
     }
 
+    public void addShopSpawner(String locKey, String entityType) {
+        if (shopSpawners == null) shopSpawners = new java.util.HashMap<String, String>();
+        shopSpawners.put(locKey, entityType.toUpperCase());
+        this.changed();
+    }
+
+    public String removeShopSpawner(String locKey) {
+        if (shopSpawners == null) return null;
+        String type = shopSpawners.remove(locKey);
+        if (type != null) this.changed();
+        return type;
+    }
+
+    public java.util.Map<String, String> getShopSpawners() {
+        if (shopSpawners == null) shopSpawners = new java.util.HashMap<String, String>();
+        return shopSpawners;
+    }
+
+    public double getSpawnerValue() {
+        if (shopSpawners == null || shopSpawners.isEmpty()) return 0;
+        java.util.Map<String, Double> values = MConf.get().spawnerValues;
+        double total = 0;
+        for (String type : shopSpawners.values()) {
+            Double val = values.get(type.toUpperCase());
+            if (val != null) total += val;
+        }
+        return total;
+    }
+
     public Faction load(Faction that) {
         this.setName(that.name);
+        this.shopSpawners = that.shopSpawners != null ? new java.util.HashMap<String, String>(that.shopSpawners) : new java.util.HashMap<String, String>();
         this.setDescription(that.description);
         this.setMotd(that.motd);
         this.setCreatedAtMillis(that.createdAtMillis);

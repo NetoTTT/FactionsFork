@@ -174,11 +174,21 @@ extends Coll<Faction> {
             }
         });
 
+        List<Faction> bySpawners = new ArrayList<Faction>(all);
+        Collections.sort(bySpawners, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) { return Double.compare(b.getSpawnerValue(), a.getSpawnerValue()); }
+        });
+
         for (Faction f : all) {
             int rp = rankIn(f, byPower);
             int rc = rankIn(f, byCoins);
-            rankCache.put(f.getId(), Math.min(rp, rc));
+            int rs = rankIn(f, bySpawners);
+            rankCache.put(f.getId(), Math.min(rp, Math.min(rc, rs)));
         }
+    }
+
+    public void invalidateRankCache() {
+        rankCacheTime = 0;
     }
 
     private List<Faction> getNormalFactions() {

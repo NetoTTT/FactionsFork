@@ -97,6 +97,37 @@ extends Entity<MConf> {
     public String colorTagTop1 = "§6";
     public String colorTagTop2 = "§7";
     public String colorTagTop3 = "§c";
+    public java.util.Map<String, Double> spawnerValues = defaultSpawnerValues();
+    private static java.util.Map<String, Double> defaultSpawnerValues() {
+        java.util.Map<String, Double> m = new java.util.LinkedHashMap<String, Double>();
+        // Passivos comuns
+        m.put("COW",          30000.0);
+        m.put("PIG",          20000.0);
+        m.put("SHEEP",        20000.0);
+        m.put("CHICKEN",      15000.0);
+        m.put("SQUID",        25000.0);
+        m.put("MUSHROOM_COW", 75000.0);
+        // Passivos raros
+        m.put("WOLF",         60000.0);
+        m.put("OCELOT",       60000.0);
+        m.put("IRON_GOLEM",  300000.0);
+        // Hostis comuns
+        m.put("ZOMBIE",       40000.0);
+        m.put("SKELETON",     60000.0);
+        m.put("SPIDER",       40000.0);
+        m.put("CAVE_SPIDER",  80000.0);
+        m.put("CREEPER",     100000.0);
+        m.put("SILVERFISH",   30000.0);
+        m.put("SLIME",       100000.0);
+        // Hostis raros
+        m.put("ENDERMAN",    200000.0);
+        m.put("WITCH",       150000.0);
+        m.put("PIG_ZOMBIE",  120000.0);
+        m.put("MAGMA_CUBE",  150000.0);
+        m.put("BLAZE",       350000.0);
+        m.put("GHAST",       400000.0);
+        return m;
+    }
     public Map<Rel, List<String>> denyCommandsTerritoryRelation = MUtil.map(Rel.ENEMY, MUtil.list("home", "homes", "sethome", "createhome", "tpahere", "tpaccept", "tpyes", "tpa", "call", "tpask", "warp", "warps", "spawn", "ehome", "ehomes", "esethome", "ecreatehome", "etpahere", "etpaccept", "etpyes", "etpa", "ecall", "etpask", "ewarp", "ewarps", "espawn", "essentials:home", "essentials:homes", "essentials:sethome", "essentials:createhome", "essentials:tpahere", "essentials:tpaccept", "essentials:tpyes", "essentials:tpa", "essentials:call", "essentials:tpask", "essentials:warp", "essentials:warps", "essentials:spawn", "jtp"), Rel.NEUTRAL, new ArrayList<String>(), Rel.TRUCE, new ArrayList<String>(), Rel.ALLY, new ArrayList<String>(), Rel.MEMBER, new ArrayList<String>());
     public EventPriority chatSetFormatAt = EventPriority.LOWEST;
     public String chatSetFormatTo = "<{faction}\u00a7f%1$s> %2$s";
