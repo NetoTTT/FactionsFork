@@ -46,3 +46,5 @@ MIT — see [LICENSE](LICENSE).
 ## Credits
 
 Original plugin by [MassiveCraft](https://www.massivecraft.com/) and the Brazilian fork by RUSHyoutuber. This repository contains decompiled and modified source code. The original authors retain their respective rights over the original work.
+
+This fork was developed with the help of [Claude](https://claude.ai) (Anthropic), which assisted with decompilation analysis, all source modifications, compilation error fixes, and build/deploy automation.
