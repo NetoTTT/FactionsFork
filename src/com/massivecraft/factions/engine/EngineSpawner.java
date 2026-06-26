@@ -76,7 +76,9 @@ public class EngineSpawner extends Engine {
         FactionColl.get().invalidateRankCache();
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    // Prioridade HIGHEST sem ignoreCancelled para garantir que rodamos mesmo
+    // se SilkSpawners ou outro plugin cancelou o evento antes.
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreak(BlockBreakEvent e) {
         Block block = e.getBlock();
         if (block.getType() != Material.MOB_SPAWNER) return;
@@ -100,8 +102,9 @@ public class EngineSpawner extends Engine {
             }
         }
 
-        if (spawnerType == null) return; // natural spawner — let vanilla handle drops
+        if (spawnerType == null) return; // natural spawner — let vanilla/SilkSpawners handle
 
+        // É um shop spawner: cancelamos qualquer drop externo e damos o item tagueado
         e.setCancelled(true);
         block.setType(Material.AIR);
         block.getWorld().dropItemNaturally(block.getLocation(), buildSpawnerItem(spawnerType));
