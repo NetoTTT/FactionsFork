@@ -141,8 +141,16 @@ implements FactionsParticipator {
         return this.getId().equals("none");
     }
 
+    public boolean isSafeZone() {
+        return this.getId().equals("safezone");
+    }
+
+    public boolean isWarZone() {
+        return this.getId().equals("warzone");
+    }
+
     public boolean isNormal() {
-        return !this.isNone();
+        return !this.isNone() && !this.isSafeZone() && !this.isWarZone();
     }
 
     public String getName() {

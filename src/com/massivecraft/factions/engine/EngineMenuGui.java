@@ -466,10 +466,15 @@ extends Engine {
 
             ItemStack banner = new ItemStack(Material.BANNER, 1, (short)15);
             org.bukkit.inventory.meta.BannerMeta meta = (org.bukkit.inventory.meta.BannerMeta) banner.getItemMeta();
-            if (i == 0) meta.setBaseColor(DyeColor.YELLOW);
-            else if (i == 1) meta.setBaseColor(DyeColor.SILVER);
-            else if (i == 2) meta.setBaseColor(DyeColor.ORANGE);
-            else meta.setBaseColor(DyeColor.WHITE);
+            DyeColor baseColor;
+            if (i == 0) baseColor = DyeColor.YELLOW;
+            else if (i == 1) baseColor = DyeColor.SILVER;
+            else if (i == 2) baseColor = DyeColor.ORANGE;
+            else baseColor = DyeColor.WHITE;
+            meta.setBaseColor(baseColor);
+            // Letra inicial da tag/nome no banner
+            char initial = display.isEmpty() ? '?' : Character.toUpperCase(display.charAt(0));
+            applyLetterPatterns(meta, initial, baseColor);
             meta.setDisplayName(rank + " " + color + "[" + display + "] §f" + f.getName());
 
             List<String> lore = new ArrayList<String>();
@@ -507,6 +512,66 @@ extends Engine {
         inv.setItem(51, makeTabButton(Material.NETHER_STAR,      "§dGeral",      "geral".equals(tipo)));
 
         p.openInventory(inv);
+    }
+
+    private void applyLetterPatterns(org.bukkit.inventory.meta.BannerMeta meta, char letter, DyeColor base) {
+        DyeColor ink = (base == DyeColor.WHITE || base == DyeColor.SILVER || base == DyeColor.YELLOW)
+            ? DyeColor.BLACK : DyeColor.WHITE;
+        org.bukkit.block.banner.PatternType[] pts = letterPatterns(letter);
+        for (org.bukkit.block.banner.PatternType pt : pts) {
+            if (pt != null) meta.addPattern(new org.bukkit.block.banner.Pattern(ink, pt));
+        }
+    }
+
+    private org.bukkit.block.banner.PatternType[] letterPatterns(char c) {
+        switch (c) {
+            case 'A': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_MIDDLE","TRIANGLE_TOP");
+            case 'B': return p("STRIPE_LEFT","STRIPE_BOTTOM","STRIPE_TOP","STRIPE_MIDDLE","SQUARE_BOTTOM_RIGHT","SQUARE_TOP_RIGHT");
+            case 'C': return p("STRIPE_LEFT","STRIPE_BOTTOM","STRIPE_TOP");
+            case 'D': return p("STRIPE_LEFT","STRIPE_BOTTOM","STRIPE_TOP","SQUARE_BOTTOM_RIGHT","SQUARE_TOP_RIGHT","STRIPE_RIGHT");
+            case 'E': return p("STRIPE_LEFT","STRIPE_BOTTOM","STRIPE_TOP","STRIPE_MIDDLE");
+            case 'F': return p("STRIPE_LEFT","STRIPE_TOP","STRIPE_MIDDLE");
+            case 'G': return p("STRIPE_LEFT","STRIPE_BOTTOM","STRIPE_TOP","SQUARE_BOTTOM_RIGHT","HALF_HORIZONTAL_MIRROR");
+            case 'H': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_MIDDLE");
+            case 'I': return p("STRIPE_CENTER","STRIPE_BOTTOM","STRIPE_TOP");
+            case 'J': return p("STRIPE_RIGHT","STRIPE_BOTTOM","SQUARE_BOTTOM_LEFT");
+            case 'K': return p("STRIPE_LEFT","DIAGONAL_RIGHT","DIAGONAL_RIGHT_MIRROR");
+            case 'L': return p("STRIPE_LEFT","STRIPE_BOTTOM");
+            case 'M': return p("STRIPE_LEFT","STRIPE_RIGHT","DIAGONAL_LEFT","DIAGONAL_RIGHT");
+            case 'N': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_DOWNRIGHT");
+            case 'O': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_BOTTOM","STRIPE_TOP");
+            case 'P': return p("STRIPE_LEFT","STRIPE_TOP","STRIPE_MIDDLE","SQUARE_TOP_RIGHT");
+            case 'Q': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_BOTTOM","STRIPE_TOP","SQUARE_BOTTOM_RIGHT");
+            case 'R': return p("STRIPE_LEFT","STRIPE_TOP","STRIPE_MIDDLE","SQUARE_TOP_RIGHT","DIAGONAL_RIGHT_MIRROR");
+            case 'S': return p("STRIPE_TOP","STRIPE_BOTTOM","STRIPE_MIDDLE","SQUARE_TOP_LEFT","SQUARE_BOTTOM_RIGHT");
+            case 'T': return p("STRIPE_TOP","STRIPE_CENTER");
+            case 'U': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_BOTTOM");
+            case 'V': return p("DIAGONAL_LEFT","DIAGONAL_RIGHT");
+            case 'W': return p("STRIPE_LEFT","STRIPE_RIGHT","DIAGONAL_LEFT_MIRROR","DIAGONAL_RIGHT_MIRROR");
+            case 'X': return p("DIAGONAL_LEFT","DIAGONAL_RIGHT","DIAGONAL_LEFT_MIRROR","DIAGONAL_RIGHT_MIRROR");
+            case 'Y': return p("DIAGONAL_LEFT","DIAGONAL_RIGHT","STRIPE_CENTER");
+            case 'Z': return p("STRIPE_TOP","STRIPE_BOTTOM","STRIPE_DOWNRIGHT");
+            case '0': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_BOTTOM","STRIPE_TOP","STRIPE_DOWNRIGHT");
+            case '1': return p("STRIPE_CENTER","STRIPE_BOTTOM","SQUARE_TOP_LEFT");
+            case '2': return p("STRIPE_TOP","STRIPE_MIDDLE","STRIPE_BOTTOM","SQUARE_TOP_RIGHT","SQUARE_BOTTOM_LEFT");
+            case '3': return p("STRIPE_TOP","STRIPE_MIDDLE","STRIPE_BOTTOM","SQUARE_TOP_RIGHT","SQUARE_BOTTOM_RIGHT");
+            case '4': return p("STRIPE_MIDDLE","STRIPE_RIGHT","SQUARE_TOP_LEFT","STRIPE_LEFT");
+            case '5': return p("STRIPE_TOP","STRIPE_MIDDLE","STRIPE_BOTTOM","SQUARE_TOP_LEFT","SQUARE_BOTTOM_RIGHT");
+            case '6': return p("STRIPE_LEFT","STRIPE_MIDDLE","STRIPE_BOTTOM","STRIPE_TOP","SQUARE_BOTTOM_RIGHT");
+            case '7': return p("STRIPE_TOP","STRIPE_RIGHT");
+            case '8': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_BOTTOM","STRIPE_TOP","STRIPE_MIDDLE");
+            case '9': return p("STRIPE_LEFT","STRIPE_RIGHT","STRIPE_TOP","STRIPE_MIDDLE","SQUARE_TOP_LEFT");
+            default:  return p("CROSS");
+        }
+    }
+
+    private org.bukkit.block.banner.PatternType[] p(String... names) {
+        org.bukkit.block.banner.PatternType[] arr = new org.bukkit.block.banner.PatternType[names.length];
+        for (int i = 0; i < names.length; i++) {
+            try { arr[i] = org.bukkit.block.banner.PatternType.valueOf(names[i]); }
+            catch (Exception e) { arr[i] = null; }
+        }
+        return arr;
     }
 
     private ItemStack makeTabButton(Material mat, String nome, boolean ativo) {
