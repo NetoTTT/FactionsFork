@@ -150,40 +150,25 @@ extends Coll<Faction> {
         rankCacheTime = now;
         rankCache.clear();
 
-        List<Faction> all = new ArrayList<Faction>();
-        for (Faction f : this.getAll()) {
-            if (f.isNormal()) all.add(f);
-        }
+        List<Faction> all = getNormalFactions();
 
-        final java.util.Map<String, Double> balances = new java.util.HashMap<String, Double>();
+        // Cor da tag baseada apenas no ranking Geral (coins + spawners)
+        final java.util.Map<String, Double> geralScores = new java.util.HashMap<String, Double>();
         for (Faction f : all) {
-            balances.put(f.getId(), getFactionBalance(f));
+            geralScores.put(f.getId(), getFactionBalance(f) + f.getSpawnerValue());
         }
 
-        List<Faction> byPower = new ArrayList<Faction>(all);
-        Collections.sort(byPower, new java.util.Comparator<Faction>() {
-            public int compare(Faction a, Faction b) { return Double.compare(b.getPower(), a.getPower()); }
-        });
-
-        List<Faction> byCoins = new ArrayList<Faction>(all);
-        Collections.sort(byCoins, new java.util.Comparator<Faction>() {
+        List<Faction> byGeral = new ArrayList<Faction>(all);
+        Collections.sort(byGeral, new java.util.Comparator<Faction>() {
             public int compare(Faction a, Faction b) {
-                double ba = balances.containsKey(a.getId()) ? balances.get(a.getId()) : 0;
-                double bb = balances.containsKey(b.getId()) ? balances.get(b.getId()) : 0;
-                return Double.compare(bb, ba);
+                double sa = geralScores.containsKey(a.getId()) ? geralScores.get(a.getId()) : 0;
+                double sb = geralScores.containsKey(b.getId()) ? geralScores.get(b.getId()) : 0;
+                return Double.compare(sb, sa);
             }
         });
 
-        List<Faction> bySpawners = new ArrayList<Faction>(all);
-        Collections.sort(bySpawners, new java.util.Comparator<Faction>() {
-            public int compare(Faction a, Faction b) { return Double.compare(b.getSpawnerValue(), a.getSpawnerValue()); }
-        });
-
         for (Faction f : all) {
-            int rp = rankIn(f, byPower);
-            int rc = rankIn(f, byCoins);
-            int rs = rankIn(f, bySpawners);
-            rankCache.put(f.getId(), Math.min(rp, Math.min(rc, rs)));
+            rankCache.put(f.getId(), rankIn(f, byGeral));
         }
     }
 
@@ -206,7 +191,45 @@ extends Coll<Faction> {
         return Integer.MAX_VALUE;
     }
 
-    private double getFactionBalance(Faction faction) {
+    public List<Faction> getTopByCoins(int limit) {
+        List<Faction> sorted = getNormalFactions();
+        final java.util.Map<String, Double> bal = new java.util.HashMap<String, Double>();
+        for (Faction f : sorted) bal.put(f.getId(), getFactionBalance(f));
+        Collections.sort(sorted, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) {
+                double ba = bal.containsKey(a.getId()) ? bal.get(a.getId()) : 0;
+                double bb = bal.containsKey(b.getId()) ? bal.get(b.getId()) : 0;
+                return Double.compare(bb, ba);
+            }
+        });
+        return sorted.subList(0, Math.min(limit, sorted.size()));
+    }
+
+    public List<Faction> getTopBySpawners(int limit) {
+        List<Faction> sorted = getNormalFactions();
+        Collections.sort(sorted, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) {
+                return Double.compare(b.getSpawnerValue(), a.getSpawnerValue());
+            }
+        });
+        return sorted.subList(0, Math.min(limit, sorted.size()));
+    }
+
+    public List<Faction> getTopByGeral(int limit) {
+        List<Faction> sorted = getNormalFactions();
+        final java.util.Map<String, Double> scores = new java.util.HashMap<String, Double>();
+        for (Faction f : sorted) scores.put(f.getId(), getFactionBalance(f) + f.getSpawnerValue());
+        Collections.sort(sorted, new java.util.Comparator<Faction>() {
+            public int compare(Faction a, Faction b) {
+                double sa = scores.containsKey(a.getId()) ? scores.get(a.getId()) : 0;
+                double sb = scores.containsKey(b.getId()) ? scores.get(b.getId()) : 0;
+                return Double.compare(sb, sa);
+            }
+        });
+        return sorted.subList(0, Math.min(limit, sorted.size()));
+    }
+
+    public double getFactionBalance(Faction faction) {
         net.milkbowl.vault.economy.Economy eco = getEconomy();
         if (eco == null) return 0;
         double total = 0;

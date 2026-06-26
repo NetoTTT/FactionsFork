@@ -431,21 +431,39 @@ extends Engine {
     }
 
     public void abrirMenuRanking(Player p) {
-        List<Faction> top = FactionColl.get().getTopFactions(45);
-        int size = Math.max(9, ((top.size() / 9) + (top.size() % 9 == 0 ? 0 : 1)) * 9);
-        size = Math.min(size, 54);
-        Inventory inv = Bukkit.createInventory(null, size, "§8Ranking das Facções");
+        abrirMenuRanking(p, "geral");
+    }
+
+    public void abrirMenuRanking(Player p, String tipo) {
+        List<Faction> top;
+        String titulo;
+        if ("poder".equals(tipo)) {
+            top = FactionColl.get().getTopFactions(45);
+            titulo = "§8Top §6Poder";
+        } else if ("moedas".equals(tipo)) {
+            top = FactionColl.get().getTopByCoins(45);
+            titulo = "§8Top §eMoedas";
+        } else if ("geradores".equals(tipo)) {
+            top = FactionColl.get().getTopBySpawners(45);
+            titulo = "§8Top §aGeradores";
+        } else {
+            top = FactionColl.get().getTopByGeral(45);
+            titulo = "§8Top §dGeral";
+            tipo = "geral";
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 54, titulo);
         String[] medals = {"§6#1", "§7#2", "§c#3"};
-        for (int i = 0; i < top.size() && i < size; i++) {
+
+        for (int i = 0; i < top.size() && i < 45; i++) {
             Faction f = top.get(i);
             String color = FactionColl.get().getRankColor(f);
             String display = f.hasTag() ? f.getTag() : f.getName();
             String rank = i < 3 ? medals[i] : ("§f#" + (i + 1));
             String leader = f.getLeader() == null ? "N/A" : f.getLeader().getName();
-            double power = f.getPower();
-            double powerMax = f.getPowerMax();
             int members = f.getMPlayers().size();
             int lands = f.getLandCount();
+
             ItemStack banner = new ItemStack(Material.BANNER, 1, (short)15);
             org.bukkit.inventory.meta.BannerMeta meta = (org.bukkit.inventory.meta.BannerMeta) banner.getItemMeta();
             if (i == 0) meta.setBaseColor(DyeColor.YELLOW);
@@ -453,16 +471,54 @@ extends Engine {
             else if (i == 2) meta.setBaseColor(DyeColor.ORANGE);
             else meta.setBaseColor(DyeColor.WHITE);
             meta.setDisplayName(rank + " " + color + "[" + display + "] §f" + f.getName());
+
             List<String> lore = new ArrayList<String>();
             lore.add("§7Líder: §f" + leader);
-            lore.add("§7Poder: §f" + String.format("%.1f", power) + "§7/§f" + String.format("%.1f", powerMax));
+            if ("poder".equals(tipo)) {
+                lore.add("§7Poder: §f" + String.format("%.1f", f.getPower()) + "§7/§f" + String.format("%.1f", f.getPowerMax()));
+            } else if ("moedas".equals(tipo)) {
+                double bal = FactionColl.get().getFactionBalance(f);
+                lore.add("§7Coins: §f$" + String.format("%,.0f", bal));
+            } else if ("geradores".equals(tipo)) {
+                lore.add("§7Valor: §f$" + String.format("%,.0f", f.getSpawnerValue()));
+                lore.add("§7Spawners: §f" + f.getShopSpawners().size());
+            } else { // geral
+                double score = FactionColl.get().getFactionBalance(f) + f.getSpawnerValue();
+                lore.add("§7Score: §f$" + String.format("%,.0f", score));
+                lore.add("§7 §8Coins + Geradores");
+            }
             lore.add("§7Membros: §f" + members);
             lore.add("§7Terras: §f" + lands);
             meta.setLore(lore);
             banner.setItemMeta(meta);
             inv.setItem(i, banner);
         }
+
+        // ─── Barra de navegação (linha 6) ───────────────────────────────────
+        ItemStack glass = new ItemStack(Material.STAINED_GLASS_PANE, 1, (short)7);
+        org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
+        glassMeta.setDisplayName("§r");
+        glass.setItemMeta(glassMeta);
+        for (int s = 45; s <= 53; s++) inv.setItem(s, glass);
+
+        inv.setItem(45, makeTabButton(Material.DIAMOND_SWORD,    "§6Poder",      "poder".equals(tipo)));
+        inv.setItem(47, makeTabButton(Material.GOLD_INGOT,       "§eMoedas",     "moedas".equals(tipo)));
+        inv.setItem(49, makeTabButton(Material.MOB_SPAWNER,      "§aGeradores",  "geradores".equals(tipo)));
+        inv.setItem(51, makeTabButton(Material.NETHER_STAR,      "§dGeral",      "geral".equals(tipo)));
+
         p.openInventory(inv);
+    }
+
+    private ItemStack makeTabButton(Material mat, String nome, boolean ativo) {
+        ItemStack item = new ItemStack(mat);
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ativo ? nome + " §7(atual)" : nome);
+        List<String> lore = new ArrayList<String>();
+        if (ativo) lore.add("§7Você está nesta aba.");
+        else lore.add("§7Clique para ver este ranking.");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
     }
 
     @EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
@@ -655,6 +711,13 @@ extends Engine {
                     }
                 }
             }
+        } else if (inventarioNome.startsWith("\u00a78Top ")) {
+            e.setCancelled(true);
+            e.setResult(Event.Result.DENY);
+            if (slot == 45) { this.abrirMenuRanking(p, "poder");     return; }
+            if (slot == 47) { this.abrirMenuRanking(p, "moedas");    return; }
+            if (slot == 49) { this.abrirMenuRanking(p, "geradores"); return; }
+            if (slot == 51) { this.abrirMenuRanking(p, "geral");     return; }
         } else if (inventarioNome.equals("\u00a71\u00a72\u00a73\u00a78Desfazer fac\u00e7\u00e3o")) {
             e.setCancelled(true);
             e.setResult(Event.Result.DENY);
