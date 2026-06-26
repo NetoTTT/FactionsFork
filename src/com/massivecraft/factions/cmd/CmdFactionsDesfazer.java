@@ -23,7 +23,7 @@ import org.bukkit.command.CommandSender;
 public class CmdFactionsDesfazer
 extends FactionsCommand {
     public CmdFactionsDesfazer() {
-        this.addAliases(new String[]{"disband", "deletar", "excluir"});
+        this.addAliases(new String[]{"desfazer", "disband", "deletar", "excluir"});
         this.addRequirements(new Requirement[]{ReqHasFaction.get()});
         this.setDesc("\u00a76 desfazer \u00a78-\u00a77 Desfaz a sua fac\u00e7\u00e3o.");
     }

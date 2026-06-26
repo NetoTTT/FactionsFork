@@ -123,6 +123,7 @@ implements FactionsParticipator {
 
     public Faction load(Faction that) {
         this.setName(that.name);
+        this.setTag(that.tag);
         this.shopSpawners = that.shopSpawners != null ? new java.util.HashMap<String, String>(that.shopSpawners) : new java.util.HashMap<String, String>();
         this.setDescription(that.description);
         this.setMotd(that.motd);
