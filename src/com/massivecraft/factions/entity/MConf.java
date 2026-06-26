@@ -94,8 +94,8 @@ extends Entity<MConf> {
     public String territoryInfoChat = "<i> ~ {relcolor}{name} <i>{desc}";
     public boolean permanentFactionsDisableLeaderPromotion = false;
     public boolean handlePistonProtectionThroughDenyBuild = true;
-    public String colorTagTop1 = "§6";
-    public String colorTagTop2 = "§7";
+    public String colorTagTop1 = "§b";
+    public String colorTagTop2 = "§6";
     public String colorTagTop3 = "§c";
     public java.util.Map<String, Double> spawnerValues = defaultSpawnerValues();
     private static java.util.Map<String, Double> defaultSpawnerValues() {
