@@ -514,145 +514,134 @@ extends Engine {
         p.openInventory(inv);
     }
 
-    // true = máscara (usa cor de fundo para "apagar"), false = letra (usa cor da tinta)
-    private static final class BL {
-        final org.bukkit.block.banner.PatternType type;
-        final boolean mask;
-        BL(String name, boolean mask) {
-            org.bukkit.block.banner.PatternType t;
-            try { t = org.bukkit.block.banner.PatternType.valueOf(name); }
-            catch (Exception e) { t = null; }
-            this.type = t;
-            this.mask = mask;
-        }
-    }
-
+    // Porta exatamente os padrões do MambaFactionsTop/Banner.java,
+    // mas mapeia BLACK→ink e WHITE→base para manter as cores de rank.
     private void applyLetterPatterns(org.bukkit.inventory.meta.BannerMeta meta, char letter, DyeColor base) {
         DyeColor ink = (base == DyeColor.WHITE || base == DyeColor.SILVER || base == DyeColor.YELLOW)
             ? DyeColor.BLACK : DyeColor.WHITE;
-        for (BL bl : letterLayers(letter)) {
-            if (bl.type == null) continue;
-            meta.addPattern(new org.bukkit.block.banner.Pattern(bl.mask ? base : ink, bl.type));
-        }
+        addLetter(meta, Character.toUpperCase(letter), ink, base);
     }
 
-    private BL[] letterLayers(char c) {
+    private void addLetter(org.bukkit.inventory.meta.BannerMeta m, char c, DyeColor k, DyeColor w) {
         switch (c) {
-            // ---- letras ----
-            case 'A': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_MIDDLE"),
-                m("TRIANGLE_TOP"));          // recorta o topo em ponta
-            case 'B': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"),
-                f("STRIPE_MIDDLE"), f("STRIPE_RIGHT"),
-                m("SQUARE_TOP_RIGHT"), m("SQUARE_BOTTOM_RIGHT")); // arredonda lado direito
-            case 'C': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"));
-            case 'D': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"), f("STRIPE_RIGHT"),
-                m("SQUARE_TOP_RIGHT"), m("SQUARE_BOTTOM_RIGHT"));
-            case 'E': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"), f("STRIPE_MIDDLE"));
-            case 'F': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_MIDDLE"));
-            case 'G': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"),
-                f("STRIPE_RIGHT"), f("STRIPE_MIDDLE"),
-                m("SQUARE_TOP_RIGHT"));      // abre o lado direito no topo
-            case 'H': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_MIDDLE"));
-            case 'I': return bl(
-                f("STRIPE_TOP"), f("STRIPE_BOTTOM"), f("STRIPE_CENTER"));
-            case 'J': return bl(
-                f("STRIPE_RIGHT"), f("STRIPE_BOTTOM"),
-                m("SQUARE_BOTTOM_RIGHT"));   // arredonda canto inferior direito → curva do J
-            case 'K': return bl(
-                f("STRIPE_LEFT"),
-                f("DIAGONAL_RIGHT"),         // triângulo superior direito
-                f("DIAGONAL_RIGHT_MIRROR")); // triângulo inferior direito
-            case 'L': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_BOTTOM"));
-            case 'M': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"),
-                f("STRIPE_DOWNRIGHT"),       // diagonal \\
-                f("STRIPE_DOWNLEFT"));       // diagonal / → juntas formam o V do M
-            case 'N': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_DOWNRIGHT"));
-            case 'O': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"));
-            case 'P': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_MIDDLE"),
-                f("STRIPE_RIGHT"), m("SQUARE_BOTTOM_RIGHT")); // fecha só o lado superior
-            case 'Q': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"),
-                f("SQUARE_BOTTOM_RIGHT"));   // cauda do Q (fg, não máscara)
-            case 'R': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_MIDDLE"),
-                f("STRIPE_RIGHT"), m("SQUARE_BOTTOM_RIGHT"),
-                f("DIAGONAL_RIGHT_MIRROR")); // perna do R
-            case 'S': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"),
-                f("STRIPE_TOP"), f("STRIPE_MIDDLE"), f("STRIPE_BOTTOM"),
-                m("SQUARE_TOP_LEFT"),        // recorta canto superior esquerdo
-                m("SQUARE_BOTTOM_RIGHT"));   // recorta canto inferior direito
-            case 'T': return bl(
-                f("STRIPE_TOP"), f("STRIPE_CENTER"));
-            case 'U': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_BOTTOM"));
-            case 'V': return bl(
-                f("DIAGONAL_LEFT_MIRROR"),   // triângulo inferior esquerdo
-                f("DIAGONAL_RIGHT_MIRROR")); // triângulo inferior direito
-            case 'W': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"),
-                f("DIAGONAL_LEFT_MIRROR"), f("DIAGONAL_RIGHT_MIRROR"));
-            case 'X': return bl(
-                f("CROSS"));                 // PatternType.CROSS é exatamente X
-            case 'Y': return bl(
-                f("DIAGONAL_LEFT"),
-                f("DIAGONAL_RIGHT"),
-                f("STRIPE_CENTER"));
-            case 'Z': return bl(
-                f("STRIPE_TOP"), f("STRIPE_BOTTOM"), f("STRIPE_DOWNRIGHT"));
-            // ---- dígitos ----
-            case '0': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_TOP"), f("STRIPE_BOTTOM"),
-                f("STRIPE_DOWNRIGHT"));
-            case '1': return bl(
-                f("STRIPE_CENTER"), f("STRIPE_BOTTOM"), f("DIAGONAL_RIGHT"));
-            case '2': return bl(
-                f("STRIPE_TOP"), f("STRIPE_MIDDLE"), f("STRIPE_BOTTOM"),
-                f("SQUARE_TOP_RIGHT"), f("SQUARE_BOTTOM_LEFT"));
-            case '3': return bl(
-                f("STRIPE_TOP"), f("STRIPE_MIDDLE"), f("STRIPE_BOTTOM"),
-                f("STRIPE_RIGHT"),
-                m("SQUARE_TOP_LEFT"), m("SQUARE_BOTTOM_LEFT"));
-            case '4': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"), f("STRIPE_MIDDLE"),
-                m("SQUARE_BOTTOM_LEFT"));    // corta haste inferior esquerda
-            case '5': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"),
-                f("STRIPE_TOP"), f("STRIPE_MIDDLE"), f("STRIPE_BOTTOM"),
-                m("SQUARE_TOP_RIGHT"), m("SQUARE_BOTTOM_LEFT"));
-            case '6': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_TOP"), f("STRIPE_MIDDLE"),
-                f("STRIPE_BOTTOM"), f("STRIPE_RIGHT"),
-                m("SQUARE_TOP_RIGHT"));      // deixa topo direito aberto
-            case '7': return bl(
-                f("STRIPE_TOP"), f("STRIPE_RIGHT"));
-            case '8': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"),
-                f("STRIPE_TOP"), f("STRIPE_MIDDLE"), f("STRIPE_BOTTOM"));
-            case '9': return bl(
-                f("STRIPE_LEFT"), f("STRIPE_RIGHT"),
-                f("STRIPE_TOP"), f("STRIPE_MIDDLE"), f("STRIPE_BOTTOM"),
-                m("SQUARE_BOTTOM_LEFT"));    // deixa fundo esquerdo aberto
-            default: return bl(f("RHOMBUS_MIDDLE"));
+            case 'A':
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_LEFT");
+                p(m,k,"STRIPE_MIDDLE"); p(m,w,"BORDER"); break;
+            case 'B':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_RIGHT");
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_MIDDLE"); p(m,w,"BORDER"); break;
+            case 'C':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_BOTTOM");
+                p(m,w,"BORDER"); break;
+            case 'D':
+                p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_TOP");
+                p(m,w,"CURLY_BORDER"); p(m,k,"STRIPE_LEFT"); p(m,w,"BORDER"); break;
+            case 'E':
+                p(m,k,"STRIPE_MIDDLE"); p(m,w,"STRIPE_RIGHT"); p(m,k,"STRIPE_LEFT");
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_BOTTOM"); p(m,w,"BORDER"); break;
+            case 'F':
+                p(m,k,"STRIPE_MIDDLE"); p(m,w,"STRIPE_RIGHT"); p(m,k,"STRIPE_LEFT");
+                p(m,k,"STRIPE_TOP"); p(m,w,"BORDER"); break;
+            case 'G':
+                p(m,k,"STRIPE_RIGHT"); p(m,w,"HALF_HORIZONTAL"); p(m,k,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_TOP"); p(m,w,"BORDER"); break;
+            case 'H':
+                p(m,k,"STRIPE_MIDDLE"); p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_LEFT");
+                p(m,w,"BORDER"); break;
+            case 'I':
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_CENTER");
+                p(m,w,"BORDER"); break;
+            case 'J':
+                p(m,k,"STRIPE_LEFT"); p(m,w,"HALF_HORIZONTAL"); p(m,k,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_RIGHT"); p(m,w,"BORDER"); break;
+            case 'K':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_MIDDLE");
+                p(m,w,"HALF_VERTICAL_MIRROR"); p(m,k,"CROSS"); p(m,w,"BORDER"); break;
+            case 'L':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_BOTTOM"); p(m,w,"BORDER"); break;
+            case 'M':
+                p(m,k,"TRIANGLE_TOP"); p(m,w,"TRIANGLES_TOP"); p(m,k,"STRIPE_LEFT");
+                p(m,k,"STRIPE_RIGHT"); p(m,w,"BORDER"); break;
+            case 'N':
+                p(m,k,"STRIPE_LEFT"); p(m,w,"DIAGONAL_RIGHT_MIRROR"); p(m,k,"STRIPE_DOWNRIGHT");
+                p(m,k,"STRIPE_RIGHT"); p(m,w,"BORDER"); break;
+            case 'O':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_RIGHT");
+                p(m,k,"STRIPE_BOTTOM"); p(m,w,"BORDER"); break;
+            case 'P':
+                p(m,w,"HALF_HORIZONTAL"); p(m,k,"STRIPE_RIGHT"); p(m,w,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_TOP"); p(m,w,"BORDER"); break;
+            case 'Q':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_RIGHT");
+                p(m,k,"STRIPE_BOTTOM"); p(m,w,"BORDER"); p(m,k,"SQUARE_BOTTOM_RIGHT"); break;
+            case 'R':
+                p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_TOP"); p(m,w,"HALF_HORIZONTAL_MIRROR");
+                p(m,k,"STRIPE_DOWNRIGHT"); p(m,k,"STRIPE_LEFT"); p(m,w,"BORDER"); break;
+            case 'S':
+                p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_TOP"); p(m,w,"RHOMBUS_MIDDLE");
+                p(m,k,"STRIPE_DOWNRIGHT"); p(m,w,"BORDER"); p(m,w,"CURLY_BORDER"); break;
+            case 'T':
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_CENTER"); p(m,w,"BORDER"); break;
+            case 'U':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_RIGHT");
+                p(m,w,"BORDER"); break;
+            case 'V':
+                p(m,k,"STRIPE_LEFT"); p(m,w,"TRIANGLES_BOTTOM"); p(m,k,"STRIPE_DOWNLEFT");
+                p(m,w,"BORDER"); break;
+            case 'W':
+                p(m,k,"TRIANGLE_BOTTOM"); p(m,w,"TRIANGLES_BOTTOM"); p(m,k,"STRIPE_LEFT");
+                p(m,k,"STRIPE_RIGHT"); p(m,w,"BORDER"); break;
+            case 'X':
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_BOTTOM"); p(m,w,"STRIPE_CENTER");
+                p(m,k,"CROSS"); p(m,w,"BORDER"); break;
+            case 'Y':
+                p(m,k,"CROSS"); p(m,w,"HALF_VERTICAL_MIRROR"); p(m,k,"STRIPE_DOWNLEFT");
+                p(m,w,"BORDER"); break;
+            case 'Z':
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_DOWNLEFT");
+                p(m,w,"BORDER"); break;
+            case '0':
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_DOWNLEFT"); p(m,w,"BORDER"); break;
+            case '1':
+                p(m,k,"SQUARE_TOP_LEFT"); p(m,k,"STRIPE_CENTER"); p(m,k,"STRIPE_BOTTOM");
+                p(m,w,"BORDER"); break;
+            case '2':
+                p(m,k,"STRIPE_TOP"); p(m,w,"RHOMBUS_MIDDLE"); p(m,k,"STRIPE_DOWNLEFT");
+                p(m,k,"STRIPE_BOTTOM"); p(m,w,"BORDER"); break;
+            case '3':
+                p(m,k,"STRIPE_MIDDLE"); p(m,w,"STRIPE_LEFT"); p(m,k,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_TOP"); p(m,w,"BORDER"); break;
+            case '4':
+                p(m,w,"HALF_HORIZONTAL"); p(m,k,"STRIPE_LEFT"); p(m,w,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_RIGHT"); p(m,k,"STRIPE_MIDDLE"); p(m,w,"BORDER"); break;
+            case '5':
+                p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_DOWNRIGHT"); p(m,w,"CURLY_BORDER");
+                p(m,k,"SQUARE_BOTTOM_LEFT"); p(m,k,"STRIPE_TOP"); p(m,w,"BORDER"); break;
+            case '6':
+                p(m,k,"STRIPE_RIGHT"); p(m,w,"HALF_HORIZONTAL"); p(m,k,"STRIPE_BOTTOM");
+                p(m,k,"STRIPE_MIDDLE"); p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_TOP");
+                p(m,w,"BORDER"); break;
+            case '7':
+                p(m,k,"STRIPE_TOP"); p(m,w,"DIAGONAL_RIGHT"); p(m,k,"STRIPE_DOWNLEFT");
+                p(m,k,"SQUARE_BOTTOM_LEFT"); p(m,w,"BORDER"); break;
+            case '8':
+                p(m,k,"STRIPE_LEFT"); p(m,k,"STRIPE_BOTTOM"); p(m,k,"STRIPE_RIGHT");
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_MIDDLE"); p(m,w,"BORDER"); break;
+            case '9':
+                p(m,k,"STRIPE_LEFT"); p(m,w,"HALF_HORIZONTAL_MIRROR"); p(m,k,"STRIPE_MIDDLE");
+                p(m,k,"STRIPE_TOP"); p(m,k,"STRIPE_RIGHT"); p(m,w,"BORDER"); break;
+            default:
+                p(m,k,"RHOMBUS_MIDDLE"); p(m,w,"BORDER"); break;
         }
     }
 
-    private static BL f(String name) { return new BL(name, false); }
-    private static BL m(String name) { return new BL(name, true);  }
-    private static BL[] bl(BL... layers) { return layers; }
+    private void p(org.bukkit.inventory.meta.BannerMeta meta, DyeColor color, String name) {
+        try {
+            meta.addPattern(new org.bukkit.block.banner.Pattern(
+                color, org.bukkit.block.banner.PatternType.valueOf(name)));
+        } catch (Exception ignored) {}
+    }
 
     private ItemStack makeTabButton(Material mat, String nome, boolean ativo) {
         ItemStack item = new ItemStack(mat);
