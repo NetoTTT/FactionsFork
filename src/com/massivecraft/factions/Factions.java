@@ -78,6 +78,9 @@ extends MassivePlugin {
         MUtil.registerExtractor(String.class, (String)"accountId", (Extractor)ExtractorFactionAccountId.get());
         this.activateAuto();
         this.activate(new Object[]{this.getClassesActive("chat", ChatActive.class, new Predicate[0])});
+        if (org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new FactionsPapiExpansion().register();
+        }
     }
 
     public List<Class<?>> getClassesActiveColls() {
